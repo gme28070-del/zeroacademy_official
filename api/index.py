@@ -2,7 +2,6 @@ import os
 from flask import Flask, request, jsonify
 import psycopg2
 from psycopg2.extras import RealDictCursor
-# Adicione este import logo abaixo dos outros imports no topo do arquivo:
 from api.labs import labs_bp
 
 app = Flask(__name__)
@@ -199,5 +198,25 @@ def listar_modulos():
         cursor.close()
         conexao.close()
         return jsonify({"status": "sucesso", "modulos": modulos})
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+
+@app.route('/api/admin/deletar-modulo', methods=['POST'])
+def deletar_modulo():
+    dados = request.get_json()
+    if not dados:
+        return jsonify({"status": "erro", "mensagem": "Dados em falta"}), 400
+        
+    id_modulo = dados.get("id")
+    
+    try:
+        conexao = obter_conexao()
+        cursor = conexao.cursor()
+        cursor.execute("DELETE FROM modulos WHERE id = %s", (id_modulo,))
+        conexao.commit()
+        cursor.close()
+        conexao.close()
+        return jsonify({"status": "sucesso", "mensagem": "Módulo removido com sucesso!"})
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500

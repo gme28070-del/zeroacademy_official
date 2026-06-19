@@ -229,6 +229,23 @@
                 </div>
                 <button type="submit" class="btn-submit">Implantar Módulo</button>
             </form>
+
+            <br><br>
+            <h2>[+] Módulos Publicados</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Tipo</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="listaModulos">
+                    <tr>
+                        <td colspan="3" style="text-align:center;">[ CARREGANDO DADOS... ]</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -244,6 +261,13 @@
 
             document.getElementById(tabId).classList.add('active');
             event.target.classList.add('active');
+
+            // Atualiza dinamicamente os dados dependendo da aba selecionada
+            if (tabId === 'alunos') {
+                carregarAlunos();
+            } else if (tabId === 'modulos') {
+                carregarModulos();
+            }
         }
 
         // Função para carregar a lista de alunos vinda do Banco de Dados
@@ -296,7 +320,66 @@
 
                 if (resposta.ok && resultado.status === 'sucesso') {
                     alert(resultado.mensagem);
-                    carregarAlunos(); // Recarrega a lista dinamicamente
+                    carregarAlunos(); 
+                } else {
+                    alert("ERRO: " + resultado.mensagem);
+                }
+            } catch (erro) {
+                alert("Falha ao conectar com o servidor.");
+            }
+        }
+
+        // Função para carregar a lista de módulos vinda do Banco de Dados
+        async function carregarModulos() {
+            const tabelaCorpo = document.getElementById('listaModulos');
+            try {
+                const resposta = await fetch('/api/aluno/listar-modulos');
+                const resultado = await resposta.json();
+
+                if (resposta.ok && resultado.status === 'sucesso') {
+                    tabelaCorpo.innerHTML = ''; 
+
+                    if (!resultado.modulos || resultado.modulos.length === 0) {
+                        tabelaCorpo.innerHTML = `<tr><td colspan="3" style="text-align:center;">Nenhum módulo implantado.</td></tr>`;
+                        return;
+                    }
+
+                    resultado.modulos.forEach(modulo => {
+                        const linha = document.createElement('tr');
+                        linha.innerHTML = `
+                            <td>${modulo.titulo}</td>
+                            <td><span style="color:#95ed19;">${modulo.tipo_recurso.toUpperCase()}</span></td>
+                            <td>
+                                <button onclick="deletarModulo(${modulo.id}, '${modulo.titulo}')" style="background:transparent; border:1px solid #ff5555; color:#ff5555; padding:4px 8px; cursor:pointer; font-weight:bold; font-family:monospace;">[ DELETAR ]</button>
+                            </td>
+                        `;
+                        tabelaCorpo.appendChild(linha);
+                    });
+                } else {
+                    tabelaCorpo.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#ff5555;">Erro ao carregar dados.</td></tr>`;
+                }
+            } catch (erro) {
+                tabelaCorpo.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#ff5555;">Falha na conexão com o banco.</td></tr>`;
+            }
+        }
+
+        // Função para deletar um módulo do sistema
+        async function deletarModulo(id, titulo) {
+            if (!confirm(`Tem certeza que deseja remover permanentemente o módulo "${titulo}"?`)) {
+                return;
+            }
+
+            try {
+                const resposta = await fetch('/api/admin/deletar-modulo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                const resultado = await resposta.json();
+
+                if (resposta.ok && resultado.status === 'sucesso') {
+                    alert(resultado.mensagem);
+                    carregarModulos(); 
                 } else {
                     alert("ERRO: " + resultado.mensagem);
                 }
@@ -328,7 +411,7 @@
                 if (resposta.ok && resultado.status === 'sucesso') {
                     alert(resultado.mensagem);
                     document.getElementById('formAluno').reset();
-                    carregarAlunos(); // Recarrega a lista dinamicamente
+                    carregarAlunos(); 
                 } else {
                     alert("ERRO: " + resultado.mensagem);
                 }
@@ -363,6 +446,7 @@
                 if (resposta.ok && resultado.status === 'sucesso') {
                     alert(resultado.mensagem);
                     document.getElementById('formModulo').reset();
+                    carregarModulos(); 
                 } else {
                     alert("ERRO: " + resultado.mensagem);
                 }
