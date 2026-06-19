@@ -196,7 +196,7 @@
                     <tr>
                         <th>Usuário</th>
                         <th>Nome</th>
-                        <th>Módulos Ativos</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody id="listaAlunos">
@@ -266,7 +266,9 @@
                         linha.innerHTML = `
                             <td>${aluno.usuario}</td>
                             <td>${aluno.nome}</td>
-                            <td>Acesso Geral</td>
+                            <td>
+                                <button onclick="deletarAluno('${aluno.usuario}')" style="background:transparent; border:1px solid #ff5555; color:#ff5555; padding:4px 8px; cursor:pointer; font-weight:bold; font-family:monospace;">[ DELETAR ]</button>
+                            </td>
                         `;
                         tabelaCorpo.appendChild(linha);
                     });
@@ -275,6 +277,31 @@
                 }
             } catch (erro) {
                 tabelaCorpo.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#ff5555;">Falha na conexão com o banco.</td></tr>`;
+            }
+        }
+
+        // Função para deletar um aluno do sistema
+        async function deletarAluno(usuario) {
+            if (!confirm(`Tem certeza que deseja remover permanentemente o usuário ${usuario}?`)) {
+                return;
+            }
+
+            try {
+                const resposta = await fetch('/api/admin/deletar-aluno', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario })
+                });
+                const resultado = await resposta.json();
+
+                if (resposta.ok && resultado.status === 'sucesso') {
+                    alert(resultado.mensagem);
+                    carregarAlunos(); // Recarrega a lista dinamicamente
+                } else {
+                    alert("ERRO: " + resultado.mensagem);
+                }
+            } catch (erro) {
+                alert("Falha ao conectar com o servidor.");
             }
         }
 

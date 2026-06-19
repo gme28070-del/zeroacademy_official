@@ -138,3 +138,22 @@ def criar_modulo():
         return jsonify({"status": "sucesso", "mensagem": f"Módulo '{titulo}' implantado com sucesso!"})
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
+@app.route('/api/admin/deletar-aluno', methods=['POST'])
+def deletar_aluno():
+    dados = request.get_json()
+    if not dados:
+        return jsonify({"status": "erro", "mensagem": "Dados em falta"}), 400
+        
+    usuario = dados.get("usuario")
+    
+    try:
+        conexao = obter_conexao()
+        cursor = conexao.cursor()
+        # Deleta o aluno baseado no usuário exclusivo
+        cursor.execute("DELETE FROM alunos WHERE usuario = %s", (usuario,))
+        conexao.commit()
+        cursor.close()
+        conexao.close()
+        return jsonify({"status": "sucesso", "mensagem": f"Usuário {usuario} removido com sucesso!"})
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500    
