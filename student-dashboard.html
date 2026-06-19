@@ -106,6 +106,8 @@
         }
 
         .btn-acessar {
+            display: block;
+            width: 100%;
             background: transparent;
             border: 1px solid #45f3ff;
             color: #45f3ff;
@@ -162,18 +164,27 @@
                         const card = document.createElement('div');
                         card.className = 'card-modulo';
                         
-                        // Formata o texto exibido baseado no tipo do recurso
-                        let linkAcao = modulo.conteudo;
-                        if (!linkAcao.startsWith('http')) {
-                            linkAcao = '#'; // Se for texto puro ou código base
+                        const conteudoLimpo = modulo.conteudo.trim();
+                        // Valida se o conteúdo guardado realmente inicia como uma URL/Link válido
+                        const ehLinkValido = conteudoLimpo.startsWith('http://') || conteudoLimpo.startsWith('https://');
+
+                        let elementoAcao = '';
+
+                        if (ehLinkValido) {
+                            // Se for link, gera uma tag âncora padrão para abertura em nova aba
+                            elementoAcao = `<a href="${conteudoLimpo}" target="_blank" class="btn-acessar">Iniciar Conteúdo</a>`;
+                        } else {
+                            // Se for texto puro ou código, codifica os caracteres especiais e gera um botão de leitura
+                            const textoEscapado = encodeURIComponent(conteudoLimpo);
+                            elementoAcao = `<button onclick="visualizarTexto('${modulo.titulo}', '${textoEscapado}')" class="btn-acessar">Ler Instruções</button>`;
                         }
 
                         card.innerHTML = `
                             <div>
-                                <span class="tag-tipo">${modulo.tipo_recurso}</span>
+                                <span class="tag-tipo">${modulo.tipo_recurso.toUpperCase()}</span>
                                 <h3>${modulo.titulo}</h3>
                             </div>
-                            <a href="${linkAcao}" target="_blank" class="btn-acessar">Iniciar Conteúdo</a>
+                            ${elementoAcao}
                         `;
                         container.appendChild(card);
                     });
@@ -183,6 +194,12 @@
             } catch (erro) {
                 container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#ff5555;">Falha na conexão com a API.</p>`;
             }
+        }
+
+        // Função responsável por exibir textos de instrução sem quebrar o layout ou desviar a página
+        function visualizarTexto(titulo, textoCodificado) {
+            const textoDecodificado = decodeURIComponent(textoCodificado);
+            alert(`[ INSTRUÇÕES - ${titulo.toUpperCase()} ]\n\n${textoDecodificado}`);
         }
 
         // Executa ao abrir a página

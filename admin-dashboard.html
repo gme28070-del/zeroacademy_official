@@ -220,12 +220,13 @@
                     <select id="tipoRecurso">
                         <option value="video">Vídeo (YouTube)</option>
                         <option value="pdf">Documento PDF</option>
+                        <option value="texto">Texto / Instruções</option>
                         <option value="interativo">Ambiente Interativo (HTML/JS)</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Link ou Conteúdo do Recurso</label>
-                    <textarea id="conteudoModulo" rows="4" placeholder="URL do vídeo, link do arquivo ou código base..."></textarea>
+                    <textarea id="conteudoModulo" rows="4" placeholder="URL do vídeo, link do arquivo ou texto descritivo..."></textarea>
                 </div>
                 <button type="submit" class="btn-submit">Implantar Módulo</button>
             </form>
@@ -250,7 +251,6 @@
     </div>
 
     <script>
-        // Lógica para alternar entre as abas do painel
         function switchTab(tabId) {
             document.querySelectorAll('.dashboard-section').forEach(section => {
                 section.classList.remove('active');
@@ -262,7 +262,6 @@
             document.getElementById(tabId).classList.add('active');
             event.target.classList.add('active');
 
-            // Atualiza dinamicamente os dados dependendo da aba selecionada
             if (tabId === 'alunos') {
                 carregarAlunos();
             } else if (tabId === 'modulos') {
@@ -270,7 +269,6 @@
             }
         }
 
-        // Função para carregar a lista de alunos vinda do Banco de Dados
         async function carregarAlunos() {
             const tabelaCorpo = document.getElementById('listaAlunos');
             try {
@@ -304,7 +302,6 @@
             }
         }
 
-        // Função para deletar um aluno do sistema
         async function deletarAluno(usuario) {
             if (!confirm(`Tem certeza que deseja remover permanentemente o usuário ${usuario}?`)) {
                 return;
@@ -329,7 +326,6 @@
             }
         }
 
-        // Função para carregar a lista de módulos vinda do Banco de Dados
         async function carregarModulos() {
             const tabelaCorpo = document.getElementById('listaModulos');
             try {
@@ -363,7 +359,6 @@
             }
         }
 
-        // Função para deletar um módulo do sistema
         async function deletarModulo(id, titulo) {
             if (!confirm(`Tem certeza que deseja remover permanentemente o módulo "${titulo}"?`)) {
                 return;
@@ -388,10 +383,8 @@
             }
         }
 
-        // FORMULÁRIO: Cadastrar Aluno
         document.getElementById('formAluno').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const nome = document.getElementById('nomeAluno').value;
             const usuario = document.getElementById('userAluno').value;
             const senha = document.getElementById('senhaAluno').value;
@@ -423,10 +416,8 @@
             }
         });
 
-        // FORMULÁRIO: Criar Módulo
         document.getElementById('formModulo').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const titulo = document.getElementById('tituloModulo').value;
             const tipo_recurso = document.getElementById('tipoRecurso').value;
             const conteudo = document.getElementById('conteudoModulo').value;
@@ -458,7 +449,6 @@
             }
         });
 
-        // Inicia a tabela assim que o painel abre
         window.addEventListener('DOMContentLoaded', carregarAlunos);
     </script>
 </body>
