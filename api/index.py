@@ -68,12 +68,29 @@ def login():
         usuario = dados.get("username")
         senha = dados.get("password")
         
+        # 1. Verifica se é o Administrador
         if usuario == ADMIN_USER and senha == ADMIN_PASS:
             return jsonify({
                 "status": "sucesso",
                 "tipo": "admin",
                 "mensagem": "Autenticado como Administrador!",
                 "redirecionar": "/admin-dashboard.html"
+            })
+            
+        # 2. Se não for admin, procura na tabela de alunos
+        conexao = obter_conexao()
+        cursor = conexao.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("SELECT * FROM alunos WHERE usuario = %s AND senha = %s", (usuario, senha))
+        aluno = cursor.fetchone()
+        cursor.close()
+        conexao.close()
+        
+        if aluno:
+            return jsonify({
+                "status": "sucesso",
+                "tipo": "aluno",
+                "mensagem": f"Bem-vindo, {aluno['nome']}!",
+                "redirecionar": "/student-dashboard.html"
             })
             
         return jsonify({"status": "erro", "mensagem": "Credenciais inválidas!"}), 401
@@ -163,5 +180,19 @@ def deletar_aluno():
         cursor.close()
         conexao.close()
         return jsonify({"status": "sucesso", "mensagem": f"Usuário {usuario} removido com sucesso!"})
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+
+@app.route('/api/aluno/listar-modulos', methods=['GET'])
+def listar_modulos():
+    try:
+        conexao = obter_conexao()
+        cursor = conexao.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("SELECT id, titulo, tipo_recurso, conteudo FROM modulos ORDER BY id ASC")
+        modulos = cursor.fetchall()
+        cursor.close()
+        conexao.close()
+        return jsonify({"status": "sucesso", "modulos": modulos})
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500

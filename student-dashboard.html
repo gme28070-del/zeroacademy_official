@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZeroDayAcademy - Área do Aluno</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: #0b0c10;
+            color: #66fcf1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background-color: #1f2833;
+            border-bottom: 2px solid #45f3ff;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h1 {
+            color: #45f3ff;
+            font-size: 20px;
+        }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid #ff5555;
+            color: #ff5555;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .btn-logout:hover {
+            background-color: #ff5555;
+            color: #0b0c10;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 40px auto;
+            padding: 0 20px;
+            flex: 1;
+        }
+
+        .welcome-box {
+            background-color: #1f2833;
+            border-left: 4px solid #95ed19;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .welcome-box h2 {
+            color: #95ed19;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .grid-modulos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card-modulo {
+            background-color: #1f2833;
+            border: 1px solid #45f3ff;
+            padding: 20px;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-modulo h3 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .tag-tipo {
+            display: inline-block;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: bold;
+            padding: 3px 8px;
+            background-color: #0b0c10;
+            color: #95ed19;
+            border: 1px solid #95ed19;
+            margin-bottom: 15px;
+            align-self: flex-start;
+        }
+
+        .btn-acessar {
+            background: transparent;
+            border: 1px solid #45f3ff;
+            color: #45f3ff;
+            padding: 10px;
+            text-align: center;
+            text-decoration: none;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-acessar:hover {
+            background-color: #45f3ff;
+            color: #0b0c10;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <h1>[ ACADEMY_PORTAL ]</h1>
+        <button class="btn-logout" onclick="window.location.href='/'">Sair</button>
+    </div>
+
+    <div class="container">
+        <div class="welcome-box">
+            <h2>MÓDULOS DE TREINAMENTO DISPONÍVEIS</h2>
+            <p>Selecione uma categoria abaixo para iniciar as lições.</p>
+        </div>
+
+        <div class="grid-modulos" id="containerModulos">
+            <p style="grid-column: 1/-1; text-align: center;">[ CARREGANDO TREINAMENTOS... ]</p>
+        </div>
+    </div>
+
+    <script>
+        async function carregarModulos() {
+            const container = document.getElementById('containerModulos');
+            try {
+                const resposta = await fetch('/api/aluno/listar-modulos');
+                const resultado = await resposta.json();
+
+                if (resposta.ok && resultado.status === 'sucesso') {
+                    container.innerHTML = '';
+
+                    if (!resultado.modulos || resultado.modulos.length === 0) {
+                        container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#ff5555;">Nenhum módulo foi publicado pelo administrador ainda.</p>`;
+                        return;
+                    }
+
+                    resultado.modulos.forEach(modulo => {
+                        const card = document.createElement('div');
+                        card.className = 'card-modulo';
+                        
+                        // Formata o texto exibido baseado no tipo do recurso
+                        let linkAcao = modulo.conteudo;
+                        if (!linkAcao.startsWith('http')) {
+                            linkAcao = '#'; // Se for texto puro ou código base
+                        }
+
+                        card.innerHTML = `
+                            <div>
+                                <span class="tag-tipo">${modulo.tipo_recurso}</span>
+                                <h3>${modulo.titulo}</h3>
+                            </div>
+                            <a href="${linkAcao}" target="_blank" class="btn-acessar">Iniciar Conteúdo</a>
+                        `;
+                        container.appendChild(card);
+                    });
+                } else {
+                    container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#ff5555;">Erro ao renderizar módulos do banco.</p>`;
+                }
+            } catch (erro) {
+                container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#ff5555;">Falha na conexão com a API.</p>`;
+            }
+        }
+
+        // Executa ao abrir a página
+        window.addEventListener('DOMContentLoaded', carregarModulos);
+    </script>
+</body>
+</html>
