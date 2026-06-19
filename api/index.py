@@ -150,15 +150,23 @@ def criar_modulo():
         return jsonify({"status": "erro", "mensagem": "Dados em falta"}), 400
         
     titulo = dados.get("titulo")
-    tipo_recurso = dados.get("tipo_recurso")
+    # Captura tanto 'tipo_recurso' quanto 'tipoRecurso' para evitar falhas de nomenclatura do front-end
+    tipo_recurso = dados.get("tipo_recurso") or dados.get("tipoRecurso")
     conteudo = dados.get("conteudo")
     
+    # Normaliza o conteúdo removendo espaços vazios extras antes e depois do texto
+    if conteudo:
+        conteudo = conteudo.strip()
+
+    if not titulo or not tipo_recurso or not conteudo:
+        return jsonify({"status": "erro", "mensagem": "Todos os campos são obrigatórios."}), 400
+        
     try:
         conexao = obter_conexao()
         cursor = conexao.cursor()
         cursor.execute(
             "INSERT INTO modulos (titulo, tipo_recurso, conteudo) VALUES (%s, %s, %s)",
-            (titulo, tipo_recurso, conteudo)
+            (titulo, tipo_recurso.lower(), conteudo)
         )
         conexao.commit()
         cursor.close()
