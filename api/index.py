@@ -8,11 +8,13 @@ app = Flask(__name__)
 # Configuração da ligação ao Neon Postgres usando a variável automática da Vercel
 DATABASE_URL = os.environ.get("POSTGRES_URL")
 
+
 def obter_conexao():
     if not DATABASE_URL:
         raise Exception("A variável de ambiente POSTGRES_URL não está configurada na Vercel.")
     # Adiciona sslmode=require para garantir a ligação segura exigida pelo Neon
     return psycopg2.connect(DATABASE_URL, sslmode="require")
+
 
 def inicializar_banco():
     """Cria as tabelas iniciais caso não existam no Postgres"""
@@ -47,12 +49,14 @@ def inicializar_banco():
     except Exception as e:
         print(f"Erro ao inicializar o banco de dados: {e}")
 
+
 # Executa a criação das tabelas de forma segura
 inicializar_banco()
 
 # Credenciais temporárias do Administrador
 ADMIN_USER = "root"
 ADMIN_PASS = "toor"
+
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -76,6 +80,7 @@ def login():
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": f"Erro interno: {str(e)}"}), 500
 
+
 @app.route('/api/admin/listar-alunos', methods=['GET'])
 def listar_alunos():
     try:
@@ -88,6 +93,7 @@ def listar_alunos():
         return jsonify({"status": "sucesso", "alunos": alunos})
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
 
 @app.route('/api/admin/cadastrar-aluno', methods=['POST'])
 def cadastrar_aluno():
@@ -115,6 +121,7 @@ def cadastrar_aluno():
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
+
 @app.route('/api/admin/criar-modulo', methods=['POST'])
 def criar_modulo():
     dados = request.get_json()
@@ -138,6 +145,8 @@ def criar_modulo():
         return jsonify({"status": "sucesso", "mensagem": f"Módulo '{titulo}' implantado com sucesso!"})
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+
 @app.route('/api/admin/deletar-aluno', methods=['POST'])
 def deletar_aluno():
     dados = request.get_json()
@@ -149,11 +158,10 @@ def deletar_aluno():
     try:
         conexao = obter_conexao()
         cursor = conexao.cursor()
-        # Deleta o aluno baseado no usuário exclusivo
         cursor.execute("DELETE FROM alunos WHERE usuario = %s", (usuario,))
         conexao.commit()
         cursor.close()
         conexao.close()
         return jsonify({"status": "sucesso", "mensagem": f"Usuário {usuario} removido com sucesso!"})
     except Exception as e:
-        return jsonify({"status": "erro", "mensagem": str(e)}), 500    
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
