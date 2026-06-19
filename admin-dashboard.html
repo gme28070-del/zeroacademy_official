@@ -235,7 +235,7 @@
     </div>
 
     <script>
-        // Lógica simples para alternar entre abas
+// Lógica para alternar entre as abas do painel
         function switchTab(tabId) {
             document.querySelectorAll('.dashboard-section').forEach(section => {
                 section.classList.remove('active');
@@ -247,6 +247,74 @@
             document.getElementById(tabId).classList.add('active');
             event.target.classList.add('active');
         }
+
+        // FORMULÁRIO: Cadastrar Aluno
+        document.getElementById('formAluno').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const nome = document.getElementById('nomeAluno').value;
+            const usuario = document.getElementById('userAluno').value;
+            const senha = document.getElementById('senhaAluno').value;
+            const btn = e.target.querySelector('.btn-submit');
+
+            btn.innerText = "[ SALVANDO... ]";
+            btn.disabled = true;
+
+            try {
+                const resposta = await fetch('/api/admin/cadastrar-aluno', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, usuario, senha })
+                });
+                const resultado = await resposta.json();
+
+                if (resposta.ok && resultado.status === 'sucesso') {
+                    alert(resultado.mensagem);
+                    document.getElementById('formAluno').reset();
+                } else {
+                    alert("ERRO: " + resultado.mensagem);
+                }
+            } catch (erro) {
+                alert("Falha ao conectar com o servidor.");
+            } finaly {
+                btn.innerText = "Registrar Aluno";
+                btn.disabled = false;
+            }
+        });
+
+        // FORMULÁRIO: Criar Módulo
+        document.getElementById('formModulo').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const titulo = document.getElementById('tituloModulo').value;
+            const tipo_recurso = document.getElementById('tipoRecurso').value;
+            const conteudo = document.getElementById('conteudoModulo').value;
+            const btn = e.target.querySelector('.btn-submit');
+
+            btn.innerText = "[ IMPLANTANDO... ]";
+            btn.disabled = true;
+
+            try {
+                const resposta = await fetch('/api/admin/criar-modulo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ titulo, tipo_recurso, conteudo })
+                });
+                const resultado = await resposta.json();
+
+                if (resposta.ok && resultado.status === 'sucesso') {
+                    alert(resultado.mensagem);
+                    document.getElementById('formModulo').reset();
+                } else {
+                    alert("ERRO: " + resultado.mensagem);
+                }
+            } catch (erro) {
+                alert("Falha ao conectar com o servidor.");
+            } finaly {
+                btn.innerText = "Implantar Módulo";
+                btn.disabled = false;
+            }
+        });        
     </script>
 </body>
 </html>
