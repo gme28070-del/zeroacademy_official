@@ -201,9 +201,7 @@
                 </thead>
                 <tbody id="listaAlunos">
                     <tr>
-                        <td>teste_aluno</td>
-                        <td>Aluno Exemplo</td>
-                        <td>Nenhum</td>
+                        <td colspan="3" style="text-align:center;">[ CARREGANDO DADOS... ]</td>
                     </tr>
                 </tbody>
             </table>
@@ -235,7 +233,7 @@
     </div>
 
     <script>
-// Lógica para alternar entre as abas do painel
+        // Lógica para alternar entre as abas do painel
         function switchTab(tabId) {
             document.querySelectorAll('.dashboard-section').forEach(section => {
                 section.classList.remove('active');
@@ -246,6 +244,38 @@
 
             document.getElementById(tabId).classList.add('active');
             event.target.classList.add('active');
+        }
+
+        // Função para carregar a lista de alunos vinda do Banco de Dados
+        async function carregarAlunos() {
+            const tabelaCorpo = document.getElementById('listaAlunos');
+            try {
+                const resposta = await fetch('/api/admin/listar-alunos');
+                const resultado = await resposta.json();
+
+                if (resposta.ok && resultado.status === 'sucesso') {
+                    tabelaCorpo.innerHTML = ''; 
+
+                    if (!resultado.alunos || resultado.alunos.length === 0) {
+                        tabelaCorpo.innerHTML = `<tr><td colspan="3" style="text-align:center;">Nenhum aluno cadastrado.</td></tr>`;
+                        return;
+                    }
+
+                    resultado.alunos.forEach(aluno => {
+                        const linha = document.createElement('tr');
+                        linha.innerHTML = `
+                            <td>${aluno.usuario}</td>
+                            <td>${aluno.nome}</td>
+                            <td>Acesso Geral</td>
+                        `;
+                        tabelaCorpo.appendChild(linha);
+                    });
+                } else {
+                    tabelaCorpo.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#ff5555;">Erro ao carregar dados.</td></tr>`;
+                }
+            } catch (erro) {
+                tabelaCorpo.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#ff5555;">Falha na conexão com o banco.</td></tr>`;
+            }
         }
 
         // FORMULÁRIO: Cadastrar Aluno
@@ -271,12 +301,13 @@
                 if (resposta.ok && resultado.status === 'sucesso') {
                     alert(resultado.mensagem);
                     document.getElementById('formAluno').reset();
+                    carregarAlunos(); // Recarrega a lista dinamicamente
                 } else {
                     alert("ERRO: " + resultado.mensagem);
                 }
             } catch (erro) {
                 alert("Falha ao conectar com o servidor.");
-            } finaly {
+            } finally {
                 btn.innerText = "Registrar Aluno";
                 btn.disabled = false;
             }
@@ -310,11 +341,14 @@
                 }
             } catch (erro) {
                 alert("Falha ao conectar com o servidor.");
-            } finaly {
+            } finally {
                 btn.innerText = "Implantar Módulo";
                 btn.disabled = false;
             }
-        });        
+        });
+
+        // Inicia a tabela assim que o painel abre
+        window.addEventListener('DOMContentLoaded', carregarAlunos);
     </script>
 </body>
 </html>
