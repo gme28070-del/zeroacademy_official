@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LAB-01 // PowerShell Nativo — ZeroAcademy</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+
+  :root {
+    --bg:       #080c10;
+    --surface:  #0d1117;
+    --border:   #1e2d3d;
+    --accent:   #00e5ff;
+    --warn:     #ff6b35;
+    --ok:       #39ff14;
+    --muted:    #4a5568;
+    --text:     #c9d1d9;
+    --heading:  #e6edf3;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── SCANLINES overlay ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,229,255,.015) 2px,
+      rgba(0,229,255,.015) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .topbar-logo { color: var(--accent); font-size: .8rem; letter-spacing: .15em; }
+  .topbar-badge {
+    background: rgba(0,229,255,.1);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: .7rem;
+    padding: 3px 10px;
+    border-radius: 2px;
+    letter-spacing: .1em;
+  }
+
+  /* ── LAYOUT ── */
+  .shell {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    display: grid;
+    gap: 32px;
+  }
+
+  /* ── HERO ── */
+  .hero { position: relative; }
+  .hero-label {
+    font-size: .7rem; letter-spacing: .25em;
+    color: var(--accent); margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  .hero-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 700;
+    color: var(--heading);
+    line-height: 1.1;
+    text-shadow: 0 0 40px rgba(0,229,255,.25);
+  }
+  .hero-title span { color: var(--accent); }
+  .hero-sub {
+    margin-top: 12px; font-size: .85rem;
+    color: var(--muted); max-width: 540px; line-height: 1.6;
+  }
+
+  /* ── SECTION ── */
+  .section-header {
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px; margin-bottom: 20px;
+  }
+  .section-id {
+    background: var(--accent);
+    color: var(--bg);
+    font-size: .65rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 2px;
+    letter-spacing: .1em;
+  }
+  .section-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.1rem; font-weight: 600;
+    color: var(--heading); letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  /* ── THEORY CARDS ── */
+  .theory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .theory-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    transition: border-color .2s;
+  }
+  .theory-card:hover { border-color: var(--accent); }
+  .theory-card-icon { font-size: 1.4rem; margin-bottom: 10px; }
+  .theory-card-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem; font-weight: 600;
+    color: var(--accent); margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .theory-card p { font-size: .8rem; line-height: 1.65; color: var(--text); }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: #0a0f14;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 18px 20px;
+    font-size: .82rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    position: relative;
+  }
+  .code-block .ps-prompt { color: var(--ok); }
+  .code-block .ps-cmd    { color: var(--accent); }
+  .code-block .ps-param  { color: #ff9f1c; }
+  .code-block .ps-output { color: var(--muted); }
+  .code-block .ps-comment{ color: #3a5a40; font-style: italic; }
+  .copy-btn {
+    position: absolute; top: 10px; right: 12px;
+    background: transparent; border: 1px solid var(--muted);
+    color: var(--muted); font-family: inherit; font-size: .7rem;
+    padding: 3px 10px; border-radius: 2px; cursor: pointer;
+    transition: .2s;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── STEPS ── */
+  .steps { display: grid; gap: 20px; }
+  .step {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  .step-num {
+    width: 40px; height: 40px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.1rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 2px; flex-shrink: 0;
+  }
+  .step-body {}
+  .step-body h4 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem; font-weight: 600;
+    color: var(--heading);
+    margin-bottom: 6px; text-transform: uppercase;
+  }
+  .step-body p { font-size: .82rem; line-height: 1.65; margin-bottom: 10px; }
+
+  /* ── MISSION BOX ── */
+  .mission-box {
+    background: rgba(0,229,255,.04);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 24px 28px;
+  }
+  .mission-box .blink {
+    display: inline-block; width: 8px; height: 14px;
+    background: var(--accent);
+    vertical-align: middle; margin-right: 8px;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  .mission-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.2rem; color: var(--accent);
+    font-weight: 600; margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .mission-desc { font-size: .82rem; line-height: 1.65; color: var(--text); }
+
+  /* ── FLAG FORM ── */
+  .flag-form { display: flex; gap: 10px; flex-wrap: wrap; }
+  .flag-input {
+    flex: 1; min-width: 220px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--ok);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: .9rem;
+    padding: 12px 16px;
+    border-radius: 3px;
+    outline: none;
+    transition: border-color .2s;
+    letter-spacing: .05em;
+  }
+  .flag-input:focus { border-color: var(--accent); }
+  .flag-input::placeholder { color: var(--muted); letter-spacing: normal; }
+  .flag-btn {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    padding: 12px 24px;
+    border-radius: 3px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    transition: .2s;
+  }
+  .flag-btn:hover { background: #33eeff; transform: translateY(-1px); }
+  .flag-btn:active { transform: translateY(0); }
+
+  /* ── FEEDBACK ── */
+  #feedback {
+    margin-top: 14px;
+    font-size: .85rem;
+    padding: 12px 16px;
+    border-radius: 3px;
+    display: none;
+    border-left: 3px solid;
+  }
+  #feedback.ok {
+    background: rgba(57,255,20,.07);
+    border-color: var(--ok); color: var(--ok);
+    display: block;
+  }
+  #feedback.err {
+    background: rgba(255,107,53,.07);
+    border-color: var(--warn); color: var(--warn);
+    display: block;
+  }
+
+  /* ── PROGRESS ── */
+  .xp-bar-wrap {
+    background: var(--border); border-radius: 2px;
+    height: 4px; margin-top: 8px;
+  }
+  .xp-bar {
+    height: 100%; width: 0;
+    background: linear-gradient(90deg, var(--accent), var(--ok));
+    border-radius: 2px;
+    transition: width 1.2s ease;
+  }
+
+  /* ── INFO PILLS ── */
+  .pills { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pill {
+    font-size: .72rem; letter-spacing: .07em;
+    padding: 4px 12px; border-radius: 2px;
+    border: 1px solid var(--border); color: var(--muted);
+  }
+  .pill.accent { border-color: var(--accent); color: var(--accent); }
+  .pill.warn   { border-color: var(--warn); color: var(--warn); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none; height: 1px;
+    background: var(--border);
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">ZEROACADEMY // TERMINAL LABS</div>
+  <div class="topbar-badge">LAB-01 · ATIVO</div>
+</div>
+
+<div class="shell">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-label">Laboratório 01 — PowerShell</div>
+    <h1 class="hero-title">PowerShell <span>Nativo</span><br>Master 2026</h1>
+    <p class="hero-sub">
+      Aprenda a navegar, inspecionar e extrair informações do sistema usando
+      o terminal nativo do Windows — sem instalar nada extra.
+    </p>
+    <div class="pills" style="margin-top:16px;">
+      <span class="pill accent">Iniciante</span>
+      <span class="pill">~15 min</span>
+      <span class="pill">+120 XP</span>
+      <span class="pill warn">FLAG oculta</span>
+    </div>
+    <div class="xp-bar-wrap" style="margin-top:14px;"><div class="xp-bar" id="xpBar"></div></div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- TEORIA -->
+  <section>
+    <div class="section-header">
+      <span class="section-id">TEORIA</span>
+      <span class="section-title">O que é o PowerShell?</span>
+    </div>
+    <div class="theory-grid">
+      <div class="theory-card">
+        <div class="theory-card-icon">⚙️</div>
+        <div class="theory-card-title">Shell & Scripting</div>
+        <p>PowerShell é um terminal de comandos <em>e</em> uma linguagem de script criada pela Microsoft. Ele permite controlar o Windows inteiro via texto — sem mouse.</p>
+      </div>
+      <div class="theory-card">
+        <div class="theory-card-icon">📦</div>
+        <div class="theory-card-title">Cmdlets</div>
+        <p>Os comandos do PowerShell chamam-se <strong>cmdlets</strong> (lê-se "command-lets"). Seguem o padrão <code style="color:var(--accent)">Verbo-Substantivo</code>, como <code style="color:var(--accent)">Get-Process</code> ou <code style="color:var(--accent)">Set-Location</code>.</p>
+      </div>
+      <div class="theory-card">
+        <div class="theory-card-icon">🔎</div>
+        <div class="theory-card-title">Pipeline</div>
+        <p>Você pode encadear cmdlets com o símbolo <code style="color:var(--accent)">|</code> (pipe). A saída de um comando vira entrada do próximo — poderoso para filtrar dados.</p>
+      </div>
+      <div class="theory-card">
+        <div class="theory-card-icon">📁</div>
+        <div class="theory-card-title">Sistema de Arquivos</div>
+        <p>PowerShell trata o sistema de arquivos como um <em>drive</em>. Comandos como <code style="color:var(--accent)">cd</code>, <code style="color:var(--accent)">ls</code> e <code style="color:var(--accent)">cat</code> funcionam como aliases nativos.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMANDOS ESSENCIAIS -->
+  <section>
+    <div class="section-header">
+      <span class="section-id">REFERÊNCIA</span>
+      <span class="section-title">Comandos que você vai usar</span>
+    </div>
+
+    <div class="code-block" style="margin-bottom:14px;">
+      <button class="copy-btn" onclick="copyCode(this)">COPIAR</button>
+<span class="ps-comment"># Mostra onde você está agora</span>
+<span class="ps-prompt">PS C:\&gt;</span> <span class="ps-cmd">Get-Location</span>
+<span class="ps-comment"># ou o alias curto:</span>
+<span class="ps-prompt">PS C:\&gt;</span> <span class="ps-cmd">pwd</span>
+
+<span class="ps-comment"># Lista arquivos e pastas do diretório atual</span>
+<span class="ps-prompt">PS C:\&gt;</span> <span class="ps-cmd">Get-ChildItem</span>
+<span class="ps-comment"># alias:</span>
+<span class="ps-prompt">PS C:\&gt;</span> <span class="ps-cmd">ls</span>    <span class="ps-comment">ou</span>    <span class="ps-cmd">dir</span>
+
+<span class="ps-comment"># Entra numa pasta</span>
+<span class="ps-prompt">PS C:\&gt;</span> <span class="ps-cmd">Set-Location</span> <span class="ps-param">Desktop</span>
+<span class="ps-comment"># alias:</span>
+<span class="ps-prompt">PS C:\&gt;</span> <span class="ps-cmd">cd</span> <span class="ps-param">Desktop</span>
+
+<span class="ps-comment"># Lê o conteúdo de um arquivo de texto</span>
+<span class="ps-prompt">PS C:\&gt;</span> <span class="ps-cmd">Get-Content</span> <span class="ps-param">flag.txt</span>
+<span class="ps-comment"># alias:</span>
+<span class="ps-prompt">PS C:\&gt;</span> <span class="ps-cmd">cat</span> <span class="ps-param">flag.txt</span>
+
+<span class="ps-comment"># Cria uma pasta nova</span>
+<span class="ps-prompt">PS C:\&gt;</span> <span class="ps-cmd">New-Item</span> <span class="ps-param">-Name "minha-pasta" -ItemType Directory</span>
+
+<span class="ps-comment"># Filtra saída por palavra-chave (igual ao grep no Linux)</span>
+<span class="ps-prompt">PS C:\&gt;</span> <span class="ps-cmd">Get-ChildItem</span> | <span class="ps-cmd">Where-Object</span> { <span class="ps-param">$_.Name -like "*flag*"</span> }
+    </div>
+  </section>
+
+  <!-- PASSO A PASSO -->
+  <section>
+    <div class="section-header">
+      <span class="section-id">GUIA</span>
+      <span class="section-title">Passo a passo do desafio</span>
+    </div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Abrir o PowerShell</h4>
+          <p>Pressione <strong>Win + R</strong>, digite <code style="color:var(--accent)">powershell</code> e pressione Enter. Você verá o prompt <code style="color:var(--ok)">PS C:\Users\SeuNome&gt;</code>.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Navegar até o Desktop</h4>
+          <div class="code-block">
+<span class="ps-prompt">PS C:\Users\SeuNome&gt;</span> <span class="ps-cmd">cd</span> <span class="ps-param">Desktop</span>
+<span class="ps-output"># O prompt muda para: PS C:\Users\SeuNome\Desktop&gt;</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Procurar arquivos suspeitos</h4>
+          <p>Liste tudo na pasta e preste atenção em arquivos <code style="color:var(--accent)">.txt</code> ou com nomes incomuns.</p>
+          <div class="code-block">
+<span class="ps-prompt">PS Desktop&gt;</span> <span class="ps-cmd">ls</span>
+<span class="ps-output">    Directory: C:\Users\SeuNome\Desktop
+
+Mode    LastWriteTime     Name
+----    -------------     ----
+-a---   19/06/2026 07:00  desafio.txt
+-a---   19/06/2026 07:00  instrucoes.pdf</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>Ler o conteúdo do arquivo</h4>
+          <div class="code-block">
+<span class="ps-prompt">PS Desktop&gt;</span> <span class="ps-cmd">cat</span> <span class="ps-param">desafio.txt</span>
+<span class="ps-output">Parabéns por chegar até aqui.
+A flag está escondida nas propriedades do sistema.
+Dica: $env:FLAG_SECRET</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h4>Acessar variáveis de ambiente</h4>
+          <p>Variáveis de ambiente guardam informações do sistema. No PowerShell acessa-se com <code style="color:var(--accent)">$env:NOME</code>.</p>
+          <div class="code-block">
+<span class="ps-prompt">PS Desktop&gt;</span> <span class="ps-cmd">$env:FLAG_SECRET</span>
+<span class="ps-output">FLAG{PS_N4T1V0_M4ST3R_2026}</span>
+          </div>
+          <p style="margin-top:10px;">💡 Você também pode listar <em>todas</em> as variáveis com <code style="color:var(--accent)">Get-ChildItem Env:</code></p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <h4>Submeter a flag abaixo</h4>
+          <p>Cole a flag encontrada no campo de submissão e clique em VALIDAR.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- MISSÃO -->
+  <section class="mission-box">
+    <div class="mission-text"><span class="blink"></span>Missão: capturar a flag</div>
+    <p class="mission-desc">
+      Um arquivo foi escondido nas variáveis de ambiente do sistema.
+      Siga o guia acima, localize a flag e submeta-a para completar o lab.
+    </p>
+  </section>
+
+  <!-- FLAG SUBMISSION -->
+  <section>
+    <div class="section-header">
+      <span class="section-id">SUBMISSÃO</span>
+      <span class="section-title">Inserir Flag</span>
+    </div>
+    <div class="flag-form">
+      <input
+        class="flag-input"
+        id="flagInput"
+        type="text"
+        placeholder="FLAG{...}"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button class="flag-btn" onclick="submitFlag()">▶ VALIDAR</button>
+    </div>
+    <div id="feedback"></div>
+  </section>
+
+</div><!-- /shell -->
+
+<script>
+  /* ── XP bar animation on load ── */
+  window.addEventListener('load', () => {
+    setTimeout(() => { document.getElementById('xpBar').style.width = '15%'; }, 300);
+  });
+
+  /* ── Copy code ── */
+  function copyCode(btn) {
+    const block = btn.closest('.code-block');
+    const text = Array.from(block.querySelectorAll('span'))
+      .map(s => s.textContent)
+      .join('')
+      .replace(/# .*\n?/g, '')  // remove comment lines
+      .trim();
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'COPIADO!';
+      setTimeout(() => btn.textContent = 'COPIAR', 1500);
+    });
+  }
+
+  /* ── Flag validation ── */
+  async function submitFlag() {
+    const flag = document.getElementById('flagInput').value.trim();
+    const fb   = document.getElementById('feedback');
+    const btn  = document.querySelector('.flag-btn');
+
+    if (!flag) {
+      fb.className = 'err';
+      fb.textContent = '⚠ Insira a flag antes de submeter.';
+      return;
+    }
+
+    btn.textContent = '...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/labs/validar-flag', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ desafio: 'powershell_bandit', flag })
+      });
+      const data = await res.json();
+
+      if (data.status === 'sucesso') {
+        fb.className = 'ok';
+        fb.textContent = '✔ ' + data.mensagem;
+        document.getElementById('xpBar').style.width = '100%';
+        triggerWin();
+      } else {
+        fb.className = 'err';
+        fb.textContent = '✘ ' + data.mensagem;
+        shake();
+      }
+    } catch (e) {
+      fb.className = 'err';
+      fb.textContent = '⚠ Erro de conexão com o servidor.';
+    } finally {
+      btn.textContent = '▶ VALIDAR';
+      btn.disabled = false;
+    }
+  }
+
+  /* ── Win effect ── */
+  function triggerWin() {
+    const flashes = [0, 80, 160, 240];
+    flashes.forEach(delay => {
+      setTimeout(() => {
+        document.body.style.boxShadow = 'inset 0 0 80px rgba(57,255,20,.25)';
+        setTimeout(() => document.body.style.boxShadow = '', 60);
+      }, delay);
+    });
+  }
+
+  /* ── Shake on wrong flag ── */
+  function shake() {
+    const input = document.getElementById('flagInput');
+    input.style.animation = 'none';
+    input.style.transform = 'translateX(0)';
+    let i = 0;
+    const frames = [-6, 6, -5, 5, -3, 3, 0];
+    const iv = setInterval(() => {
+      input.style.transform = `translateX(${frames[i]}px)`;
+      if (++i >= frames.length) { clearInterval(iv); input.style.transform = ''; }
+    }, 40);
+  }
+
+  /* ── Enter key ── */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.activeElement.id === 'flagInput') submitFlag();
+  });
+</script>
+</body>
+</html>
