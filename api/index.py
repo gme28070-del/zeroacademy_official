@@ -2,8 +2,13 @@ import os
 from flask import Flask, request, jsonify
 import psycopg2
 from psycopg2.extras import RealDictCursor
+# Adicione este import logo abaixo dos outros imports no topo do arquivo:
+from api.labs import labs_bp
 
 app = Flask(__name__)
+
+# Registra as rotas isoladas do arquivo labs.py
+app.register_blueprint(labs_bp)
 
 # Configuração da ligação ao Neon Postgres usando a variável automática da Vercel
 DATABASE_URL = os.environ.get("POSTGRES_URL")
