@@ -69,8 +69,7 @@
 
                 if (resposta.ok && resultado.status === 'sucesso') {
                     alert(resultado.mensagem);
-                    // Aqui faremos o redirecionamento no futuro:
-                    // window.location.href = resultado.redirecionar;
+                    window.location.href = resultado.redirecionar; // Ativa o redirecionamento real
                 } else {
                     alert("ERRO DE AUTENTICAÇÃO: " + resultado.mensagem);
                 }
