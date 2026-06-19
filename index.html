@@ -41,5 +41,48 @@
             <p>Acesso restrito. IP monitorado.</p>
         </div>
     </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Impede a página de recarregar
+
+            const usernameInput = document.getElementById('username').value;
+            const passwordInput = document.getElementById('password').value;
+            const btn = document.querySelector('.btn-login');
+
+            // Feedback visual de carregamento estilo terminal
+            btn.innerText = "[ AUTENTICANDO... ]";
+            btn.disabled = true;
+
+            try {
+                const resposta = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: usernameInput,
+                        password: passwordInput
+                    })
+                });
+
+                const resultado = await resposta.json();
+
+                if (resposta.ok && resultado.status === 'sucesso') {
+                    alert(resultado.mensagem);
+                    // Aqui faremos o redirecionamento no futuro:
+                    // window.location.href = resultado.redirecionar;
+                } else {
+                    alert("ERRO DE AUTENTICAÇÃO: " + resultado.mensagem);
+                }
+            } catch (erro) {
+                console.error(erro);
+                alert("Falha ao conectar ao servidor de autenticação.");
+            } finally {
+                // Restaura o botão
+                btn.innerText = "Autenticar";
+                btn.disabled = false;
+            }
+        });
+    </script>
 </body>
 </html>
