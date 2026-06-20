@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 DATABASE_URL = os.environ.get("POSTGRES_URL")
 
-ADMIN_USER = "root"
+ADMIN_USER = "killerdevost"
 ADMIN_PASS = "toor"
 
 
