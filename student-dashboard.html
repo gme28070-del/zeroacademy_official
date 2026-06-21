@@ -284,7 +284,6 @@
             container.innerHTML = '';
 
             if (listaDeModulos.length === 0) {
-                // Caso a lista inicial esteja vazia ou a pesquisa não retorne nada
                 const termo = document.getElementById('inputBusca').value;
                 if (termo) {
                     container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#ff5555;">Nenhum módulo encontrado para o termo pesquisado.</p>`;
@@ -305,16 +304,24 @@
                 `;
                 card.appendChild(cabecalho);
 
-                const conteudoLimpo = modulo.conteudo.trim();
-                const ehLink = conteudoLimpo.startsWith('http://') || conteudoLimpo.startsWith('https://');
+                let conteudoLimpo = modulo.conteudo.trim();
+
+                // Regex robusta para validar se o conteúdo se comporta como uma URL/Link externo (.com, .net, .org, etc.)
+                const regexUrl = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+                const ehLink = regexUrl.test(conteudoLimpo);
 
                 if (ehLink) {
+                    // Se o usuário esqueceu de digitar o http:// ou https://, nós adicionamos automaticamente
+                    if (!conteudoLimpo.startsWith('http://') && !conteudoLimpo.startsWith('https://')) {
+                        conteudoLimpo = 'https://' + conteudoLimpo;
+                    }
+
                     const link = document.createElement('a');
                     link.href = conteudoLimpo;
-                    link.target = '_blank';
-                    link.rel = 'noopener noreferrer';
+                    link.target = '_blank'; // Força abrir em uma nova aba
+                    link.rel = 'noopener noreferrer'; // Segurança contra vulnerabilidades de abas
                     link.className = 'btn-acessar';
-                    link.textContent = 'Iniciar Conteúdo';
+                    link.textContent = 'Iniciar Conteúdo ↗';
                     card.appendChild(link);
                 } else {
                     const btn = document.createElement('button');
@@ -334,7 +341,6 @@
         function filtrarModulos() {
             const termoBusca = document.getElementById('inputBusca').value.toLowerCase().trim();
             
-            // Filtra comparando com o Título e com o Tipo do módulo (Ex: links, pdfs, etc.)
             const modulosFiltrados = todosOsModulos.filter(modulo => {
                 const tituloCombina = modulo.titulo.toLowerCase().includes(termoBusca);
                 const tagCombina = modulo.tipo_recurso.toLowerCase().includes(termoBusca);
