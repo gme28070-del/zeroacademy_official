@@ -159,10 +159,27 @@
             font-weight: bold;
             font-family: monospace;
             transition: 0.3s;
+            margin-left: 5px;
         }
 
         .btn-deletar:hover {
             background-color: #ff5555;
+            color: #0b0c10;
+        }
+
+        .btn-editar {
+            background: transparent;
+            border: 1px solid #45f3ff;
+            color: #45f3ff;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: monospace;
+            transition: 0.3s;
+        }
+
+        .btn-editar:hover {
+            background-color: #45f3ff;
             color: #0b0c10;
         }
     </style>
@@ -181,11 +198,9 @@
             <p>Sessão ativa: root@zerodayacademy</p>
         </div>
 
-        <!-- Seção Alunos -->
         <div id="alunos" class="dashboard-section active">
             <h2>[+] Cadastrar Novo Aluno</h2>
             <br>
-            <!-- action="javascript:void(0)" e type="button" no submit evitam qualquer navegação acidental -->
             <form id="formAluno" action="javascript:void(0)">
                 <div class="form-group">
                     <label>Nome do Aluno</label>
@@ -220,9 +235,8 @@
             </table>
         </div>
 
-        <!-- Seção Módulos -->
         <div id="modulos" class="dashboard-section">
-            <h2>[+] Criar Novo Módulo Teórico/Prático</h2>
+            <h2 id="tituloFormModulo">[+] Criar Novo Módulo Teórico/Prático</h2>
             <br>
             <form id="formModulo" action="javascript:void(0)">
                 <div class="form-group">
@@ -265,6 +279,9 @@
     </div>
 
     <script>
+        // Variável de controle para edição de módulos
+        let moduloEditandoId = null;
+
         // ── Navegação entre abas ──────────────────────────────────────────────
         function switchTab(tabId, btnClicado) {
             document.querySelectorAll('.dashboard-section').forEach(s => s.classList.remove('active'));
@@ -389,12 +406,21 @@
                     tdTipo.appendChild(tag);
 
                     const tdAcao = document.createElement('td');
-                    const btn = document.createElement('button');
-                    btn.className = 'btn-deletar';
-                    btn.textContent = '[ DELETAR ]';
-                    btn.type = 'button';
-                    btn.addEventListener('click', () => deletarModulo(modulo.id, modulo.titulo));
-                    tdAcao.appendChild(btn);
+                    
+                    // Botão de Editar adicionado
+                    const btnEdit = document.createElement('button');
+                    btnEdit.className = 'btn-editar';
+                    btnEdit.textContent = '[ EDITAR ]';
+                    btnEdit.type = 'button';
+                    btnEdit.addEventListener('click', () => prepararEdicaoModulo(modulo));
+                    tdAcao.appendChild(btnEdit);
+
+                    const btnDel = document.createElement('button');
+                    btnDel.className = 'btn-deletar';
+                    btnDel.textContent = '[ DELETAR ]';
+                    btnDel.type = 'button';
+                    btnDel.addEventListener('click', () => deletarModulo(modulo.id, modulo.titulo));
+                    tdAcao.appendChild(btnDel);
 
                     tr.append(tdTitulo, tdTipo, tdAcao);
                     tbody.appendChild(tr);
@@ -402,6 +428,18 @@
             } catch {
                 tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#ff5555;">Falha na conexão.</td></tr>';
             }
+        }
+
+        function prepararEdicaoModulo(modulo) {
+            moduloEditandoId = modulo.id;
+            document.getElementById('tituloFormModulo').textContent = `[*] Editando Módulo (ID: ${modulo.id})`;
+            document.getElementById('tituloModulo').value = modulo.titulo;
+            document.getElementById('tipoRecurso').value = modulo.tipo_recurso.toLowerCase();
+            document.getElementById('conteudoModulo').value = modulo.conteudo;
+            document.getElementById('btnCriarModulo').textContent = 'Atualizar Módulo';
+            
+            // Rola suavemente até o formulário de edição
+            document.getElementById('formModulo').scrollIntoView({ behavior: 'smooth' });
         }
 
         async function deletarModulo(id, titulo) {
@@ -414,10 +452,20 @@
                 });
                 const data = await res.json();
                 alert(data.mensagem);
-                if (res.ok && data.status === 'sucesso') carregarModulos();
+                if (res.ok && data.status === 'sucesso') {
+                    if (moduloEditandoId === id) resetarFormModulo();
+                    carregarModulos();
+                }
             } catch {
                 alert('Falha ao conectar com o servidor.');
             }
+        }
+
+        function resetarFormModulo() {
+            moduloEditandoId = null;
+            document.getElementById('tituloFormModulo').textContent = '[+] Criar Novo Módulo Teórico/Prático';
+            document.getElementById('formModulo').reset();
+            document.getElementById('btnCriarModulo').textContent = 'Implantar Módulo';
         }
 
         document.getElementById('btnCriarModulo').addEventListener('click', async () => {
@@ -427,25 +475,31 @@
             if (!titulo || !conteudo) { alert('Título e conteúdo são obrigatórios.'); return; }
 
             const btn = document.getElementById('btnCriarModulo');
-            btn.textContent = '[ IMPLANTANDO... ]';
+            const urlEndpoint = moduloEditandoId ? '/api/admin/editar-modulo' : '/api/admin/criar-modulo';
+            
+            btn.textContent = moduloEditandoId ? '[ ATUALIZANDO... ]' : '[ IMPLANTANDO... ]';
             btn.disabled = true;
 
+            // Corpo da requisição contendo o ID se for uma ação de edição
+            const payload = { titulo, tipo_recurso, conteudo };
+            if (moduloEditandoId) payload.id = moduloEditandoId;
+
             try {
-                const res = await fetch('/api/admin/criar-modulo', {
+                const res = await fetch(urlEndpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ titulo, tipo_recurso, conteudo })
+                    body: JSON.stringify(payload)
                 });
                 const data = await res.json();
                 alert(data.mensagem);
                 if (res.ok && data.status === 'sucesso') {
-                    document.getElementById('formModulo').reset();
+                    resetarFormModulo();
                     carregarModulos();
                 }
             } catch {
                 alert('Falha ao conectar com o servidor.');
             } finally {
-                btn.textContent = 'Implantar Módulo';
+                btn.textContent = moduloEditandoId ? 'Atualizar Módulo' : 'Implantar Módulo';
                 btn.disabled = false;
             }
         });
