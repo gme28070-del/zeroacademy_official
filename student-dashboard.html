@@ -13,40 +13,46 @@
         }
 
         body {
-            background-color: #0b0c10;
-            color: #66fcf1;
+            background-color: #050508;
+            color: #e0e0e6;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
         }
 
+        /* --- Navbar VIP --- */
         .navbar {
-            background-color: #1f2833;
-            border-bottom: 2px solid #45f3ff;
+            background-color: #0d0d14;
+            border-bottom: 2px solid #ffb800;
             padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 4px 20px rgba(255, 184, 0, 0.08);
         }
 
         .navbar h1 {
-            color: #45f3ff;
+            color: #ffb800;
             font-size: 20px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 184, 0, 0.3);
         }
 
         .btn-logout {
             background: transparent;
-            border: 1px solid #ff5555;
-            color: #ff5555;
-            padding: 8px 16px;
+            border: 1px solid #ff4444;
+            color: #ff4444;
+            padding: 8px 18px;
             cursor: pointer;
             font-weight: bold;
             text-transform: uppercase;
+            transition: all 0.3s ease;
         }
 
         .btn-logout:hover {
-            background-color: #ff5555;
-            color: #0b0c10;
+            background-color: #ff4444;
+            color: #050508;
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
         }
 
         .container {
@@ -57,114 +63,142 @@
             flex: 1;
         }
 
+        /* --- Painel de Boas-Vindas Premium --- */
         .welcome-box {
-            background-color: #1f2833;
-            border-left: 4px solid #95ed19;
-            padding: 20px;
-            margin-bottom: 30px;
+            background: linear-gradient(135deg, #0d0d14 0%, #141421 100%);
+            border-left: 4px solid #ffb800;
+            border-right: 1px solid rgba(255, 184, 0, 0.1);
+            border-top: 1px solid rgba(255, 184, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 184, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 35px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
         .welcome-box h2 {
-            color: #95ed19;
+            color: #ffb800;
             font-size: 24px;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px rgba(255, 184, 0, 0.2);
         }
 
-        /* --- Estilização da nova Barra de Pesquisa --- */
+        .welcome-box p {
+            color: #a0a0b0;
+        }
+
+        /* --- Barra de Pesquisa VIP --- */
         .busca-container {
-            margin-bottom: 30px;
+            margin-bottom: 35px;
             width: 100%;
         }
 
         .input-busca {
             width: 100%;
-            background-color: #1f2833;
-            border: 1px solid #45f3ff;
-            color: #66fcf1;
-            padding: 12px 20px;
+            background-color: #0d0d14;
+            border: 1px solid #333344;
+            color: #ffb800;
+            padding: 15px 22px;
             font-size: 16px;
             font-family: 'Courier New', Courier, monospace;
             outline: none;
-            box-shadow: 0 0 10px rgba(69,243,255,0.05);
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
         }
 
         .input-busca:focus {
-            border-color: #95ed19;
-            box-shadow: 0 0 15px rgba(149,237,25,0.2);
+            border-color: #ffb800;
+            box-shadow: 0 0 15px rgba(255, 184, 0, 0.15);
         }
 
         .input-busca::placeholder {
-            color: #c5c6c7;
-            opacity: 0.5;
+            color: #666677;
         }
-        /* --------------------------------------------- */
 
+        /* --- Cards dos Módulos Exclusivos --- */
         .grid-modulos {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            gap: 25px;
         }
 
         .card-modulo {
-            background-color: #1f2833;
-            border: 1px solid #45f3ff;
-            padding: 20px;
-            border-radius: 4px;
+            background: #0d0d14;
+            border: 1px solid #222233;
+            padding: 25px;
+            border-radius: 6px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-modulo:hover {
+            transform: translateY(-4px);
+            border-color: #ffb800;
+            box-shadow: 0 12px 24px rgba(255, 184, 0, 0.08);
         }
 
         .card-modulo h3 {
-            color: #fff;
-            margin-bottom: 10px;
-            font-size: 18px;
+            color: #ffffff;
+            margin-bottom: 15px;
+            font-size: 19px;
+            letter-spacing: 0.5px;
         }
 
+        /* Badge VIP de Categoria */
         .tag-tipo {
             display: inline-block;
             font-size: 11px;
             text-transform: uppercase;
             font-weight: bold;
-            padding: 3px 8px;
-            background-color: #0b0c10;
-            color: #95ed19;
-            border: 1px solid #95ed19;
-            margin-bottom: 15px;
+            padding: 4px 10px;
+            background-color: #1a1a26;
+            color: #ffb800;
+            border: 1px solid rgba(255, 184, 0, 0.3);
+            margin-bottom: 18px;
             align-self: flex-start;
+            border-radius: 2px;
+            letter-spacing: 1px;
         }
 
+        /* Botões de Ação Atualizados */
         .btn-acessar {
             display: block;
             width: 100%;
-            background: transparent;
-            border: 1px solid #45f3ff;
-            color: #45f3ff;
-            padding: 10px;
+            background: #141421;
+            border: 1px solid #ffb800;
+            color: #ffb800;
+            padding: 12px;
             text-align: center;
             text-decoration: none;
             font-weight: bold;
             text-transform: uppercase;
             margin-top: 15px;
             cursor: pointer;
-            transition: 0.3s;
+            transition: all 0.2s ease;
             box-sizing: border-box;
+            letter-spacing: 1px;
         }
 
         .btn-acessar:hover {
-            background-color: #45f3ff;
-            color: #0b0c10;
+            background-color: #ffb800;
+            color: #050508;
+            box-shadow: 0 0 15px rgba(255, 184, 0, 0.3);
         }
 
-        /* Modal de texto */
+        /* --- Modal de Texto VIP --- */
         .modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.8);
+            background: rgba(3, 3, 5, 0.85);
+            backdrop-filter: blur(4px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s ease;
         }
 
         .modal-overlay.ativo {
@@ -172,52 +206,54 @@
         }
 
         .modal-box {
-            background-color: #1f2833;
-            border: 1px solid #45f3ff;
+            background-color: #0d0d14;
+            border: 1px solid #ffb800;
             max-width: 700px;
             width: 90%;
             max-height: 80vh;
             display: flex;
             flex-direction: column;
-            border-radius: 4px;
-            box-shadow: 0 0 30px rgba(69,243,255,0.2);
+            border-radius: 6px;
+            box-shadow: 0 0 40px rgba(255, 184, 0, 0.15);
         }
 
         .modal-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid #45f3ff;
+            padding: 18px 24px;
+            border-bottom: 1px solid #222233;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .modal-header h3 {
-            color: #95ed19;
+            color: #ffb800;
             font-size: 14px;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .modal-fechar {
             background: transparent;
-            border: 1px solid #ff5555;
-            color: #ff5555;
-            padding: 4px 10px;
+            border: 1px solid #aa3333;
+            color: #ff4444;
+            padding: 6px 12px;
             cursor: pointer;
             font-family: monospace;
             font-weight: bold;
+            transition: all 0.2s ease;
         }
 
         .modal-fechar:hover {
-            background-color: #ff5555;
-            color: #0b0c10;
+            background-color: #ff4444;
+            color: #050508;
         }
 
         .modal-corpo {
-            padding: 20px;
+            padding: 24px;
             overflow-y: auto;
             white-space: pre-wrap;
-            line-height: 1.7;
-            color: #c5c6c7;
+            line-height: 1.8;
+            color: #ccccdd;
             font-size: 14px;
         }
     </style>
