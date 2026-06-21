@@ -198,6 +198,39 @@ def criar_modulo():
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 
+@app.route('/api/admin/editar-modulo', methods=['POST'])
+def editar_modulo():
+    try:
+        dados = request.get_json()
+        if not dados:
+            return jsonify({"status": "erro", "mensagem": "Dados em falta"}), 400
+
+        modulo_id = dados.get('id')
+        titulo = dados.get('titulo')
+        tipo_recurso = dados.get('tipo_recurso') or dados.get('tipoRecurso')
+        conteudo = dados.get('conteudo')
+
+        if conteudo:
+            conteudo = conteudo.strip()
+
+        if not modulo_id or not titulo or not tipo_recurso or not conteudo:
+            return jsonify({"status": "erro", "mensagem": "Todos os campos são obrigatórios para a edição."}), 400
+
+        conexao = obter_conexao()
+        cursor = conexao.cursor()
+        cursor.execute(
+            "UPDATE modulos SET titulo = %s, tipo_recurso = %s, conteudo = %s WHERE id = %s",
+            (titulo, tipo_recurso.lower(), conteudo, modulo_id)
+        )
+        conexao.commit()
+        cursor.close()
+        conexao.close()
+
+        return jsonify({"status": "sucesso", "mensagem": f"Módulo '{titulo}' atualizado com sucesso!"})
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": f"Erro interno: {str(e)}"}), 500
+
+
 @app.route('/api/admin/deletar-modulo', methods=['POST'])
 def deletar_modulo():
     dados = request.get_json()
