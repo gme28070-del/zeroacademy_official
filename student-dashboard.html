@@ -70,6 +70,35 @@
             margin-bottom: 5px;
         }
 
+        /* --- Estilização da nova Barra de Pesquisa --- */
+        .busca-container {
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        .input-busca {
+            width: 100%;
+            background-color: #1f2833;
+            border: 1px solid #45f3ff;
+            color: #66fcf1;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-family: 'Courier New', Courier, monospace;
+            outline: none;
+            box-shadow: 0 0 10px rgba(69,243,255,0.05);
+        }
+
+        .input-busca:focus {
+            border-color: #95ed19;
+            box-shadow: 0 0 15px rgba(149,237,25,0.2);
+        }
+
+        .input-busca::placeholder {
+            color: #c5c6c7;
+            opacity: 0.5;
+        }
+        /* --------------------------------------------- */
+
         .grid-modulos {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -206,12 +235,15 @@
             <p>Selecione uma categoria abaixo para iniciar as lições.</p>
         </div>
 
+        <div class="busca-container">
+            <input type="text" id="inputBusca" class="input-busca" placeholder="[ PESQUISAR MÓDULO POR TÍTULO OU TAG... ]" oninput="filtrarModulos()">
+        </div>
+
         <div class="grid-modulos" id="containerModulos">
             <p style="grid-column: 1/-1; text-align: center;">[ CARREGANDO TREINAMENTOS... ]</p>
         </div>
     </div>
 
-    <!-- Modal para exibir conteúdo de texto -->
     <div class="modal-overlay" id="modalTexto">
         <div class="modal-box">
             <div class="modal-header">
@@ -223,6 +255,9 @@
     </div>
 
     <script>
+        // Variável global para cachear os módulos vindos da API
+        let todosOsModulos = [];
+
         async function carregarModulos() {
             const container = document.getElementById('containerModulos');
             try {
@@ -230,56 +265,83 @@
                 const resultado = await resposta.json();
 
                 if (resposta.ok && resultado.status === 'sucesso') {
-                    container.innerHTML = '';
-
-                    if (!resultado.modulos || resultado.modulos.length === 0) {
-                        container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#ff5555;">Nenhum módulo foi publicado pelo administrador ainda.</p>`;
-                        return;
-                    }
-
-                    resultado.modulos.forEach(modulo => {
-                        const card = document.createElement('div');
-                        card.className = 'card-modulo';
-
-                        // Cabeçalho do card (tag + título)
-                        const cabecalho = document.createElement('div');
-                        cabecalho.innerHTML = `
-                            <span class="tag-tipo">${modulo.tipo_recurso.toUpperCase()}</span>
-                            <h3>${modulo.titulo}</h3>
-                        `;
-                        card.appendChild(cabecalho);
-
-                        const conteudoLimpo = modulo.conteudo.trim();
-                        const ehLink = conteudoLimpo.startsWith('http://') || conteudoLimpo.startsWith('https://');
-
-                        if (ehLink) {
-                            // Cria âncora via DOM para garantir que href e target sejam atribuídos corretamente
-                            const link = document.createElement('a');
-                            link.href = conteudoLimpo;
-                            link.target = '_blank';
-                            link.rel = 'noopener noreferrer';
-                            link.className = 'btn-acessar';
-                            link.textContent = 'Iniciar Conteúdo';
-                            card.appendChild(link);
-                        } else {
-                            // Botão que abre o modal interno em vez de alert()
-                            const btn = document.createElement('button');
-                            btn.className = 'btn-acessar';
-                            btn.textContent = 'Ler Instruções';
-                            btn.addEventListener('click', () => {
-                                abrirModal(modulo.titulo, conteudoLimpo);
-                            });
-                            card.appendChild(btn);
-                        }
-
-                        container.appendChild(card);
-                    });
+                    // Armazena os módulos na variável global para busca local instantânea
+                    todosOsModulos = resultado.modulos || [];
+                    
+                    // Renderiza a lista inicial completa
+                    renderizarModulos(todosOsModulos);
                 } else {
                     container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#ff5555;">Erro ao renderizar módulos do banco.</p>`;
                 }
             } catch (erro) {
                 container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#ff5555;">Falha na conexão com a API.</p>`;
             }
+        }
+
+        // Função isolada responsável apenas por colocar os cards no HTML
+        function renderizarModulos(listaDeModulos) {
+            const container = document.getElementById('containerModulos');
+            container.innerHTML = '';
+
+            if (listaDeModulos.length === 0) {
+                // Caso a lista inicial esteja vazia ou a pesquisa não retorne nada
+                const termo = document.getElementById('inputBusca').value;
+                if (termo) {
+                    container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#ff5555;">Nenhum módulo encontrado para o termo pesquisado.</p>`;
+                } else {
+                    container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#ff5555;">Nenhum módulo foi publicado pelo administrador ainda.</p>`;
+                }
+                return;
+            }
+
+            listaDeModulos.forEach(modulo => {
+                const card = document.createElement('div');
+                card.className = 'card-modulo';
+
+                const cabecalho = document.createElement('div');
+                cabecalho.innerHTML = `
+                    <span class="tag-tipo">${modulo.tipo_recurso.toUpperCase()}</span>
+                    <h3>${modulo.titulo}</h3>
+                `;
+                card.appendChild(cabecalho);
+
+                const conteudoLimpo = modulo.conteudo.trim();
+                const ehLink = conteudoLimpo.startsWith('http://') || conteudoLimpo.startsWith('https://');
+
+                if (ehLink) {
+                    const link = document.createElement('a');
+                    link.href = conteudoLimpo;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.className = 'btn-acessar';
+                    link.textContent = 'Iniciar Conteúdo';
+                    card.appendChild(link);
+                } else {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-acessar';
+                    btn.textContent = 'Ler Instruções';
+                    btn.addEventListener('click', () => {
+                        abrirModal(modulo.titulo, conteudoLimpo);
+                    });
+                    card.appendChild(btn);
+                }
+
+                container.appendChild(card);
+            });
+        }
+
+        // Nova função que roda em tempo real enquanto o aluno digita
+        function filtrarModulos() {
+            const termoBusca = document.getElementById('inputBusca').value.toLowerCase().trim();
+            
+            // Filtra comparando com o Título e com o Tipo do módulo (Ex: links, pdfs, etc.)
+            const modulosFiltrados = todosOsModulos.filter(modulo => {
+                const tituloCombina = modulo.titulo.toLowerCase().includes(termoBusca);
+                const tagCombina = modulo.tipo_recurso.toLowerCase().includes(termoBusca);
+                return tituloCombina || tagCombina;
+            });
+
+            renderizarModulos(modulosFiltrados);
         }
 
         function abrirModal(titulo, conteudo) {
@@ -292,7 +354,6 @@
             document.getElementById('modalTexto').classList.remove('ativo');
         }
 
-        // Fecha o modal ao clicar fora da caixa
         document.getElementById('modalTexto').addEventListener('click', function(e) {
             if (e.target === this) fecharModal();
         });
