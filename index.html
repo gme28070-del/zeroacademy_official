@@ -71,7 +71,7 @@
                     alert(resultado.mensagem);
                     window.location.href = resultado.redirecionar; // Ativa o redirecionamento real
                 } else {
-                    alert("ERRO DE AUTENTICAÇÃO: " + resultado.mensagem);
+                    alert("ERRO DE AUTENTICAÇÃO: " + (resultado.mensagem || "Credenciais incorretas."));
                 }
             } catch (erro) {
                 console.error(erro);
